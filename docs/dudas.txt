@@ -1,0 +1,6 @@
+- normalizar datos con minmax o z-score?
+- que es memb.exp en fanny() de fuzzy clustering?
+- dbscan solo genera un gran cluster y unas pocas estrellas que son ruido
+- usar coeficiente de dunnett? Que es?
+- V y Vmag son lo mismo? O V y VT? (asumimos que si por la distribucion, pero cual?)
+- hace falta hacer exploratorio????

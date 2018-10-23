@@ -1,0 +1,14 @@
+## en una carpeta cualquiera:
+git clone https://github.com/opendatagroup/augustus.git
+## copiar la carpeta trunk/augustus-pmml-library/augustus en C:\Python27\Lib
+
+### augustus funciona en python2
+## para installar kernel de python2 para hydrogen
+# instalar python2 desde la web y luego:
+py -2 -m pip install ipykernel
+py -2 -m ipykernel install --user
+### augustus funciona con numpy y lxml
+py -2 -m pip install numpy
+py -2 -m pip install lxml
+### uso pandas para leer csv
+py -2 -m pip install pandas

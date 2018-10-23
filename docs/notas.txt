@@ -1,0 +1,4 @@
+- Plx: paralaje
+- pmRA: movimiento propio
+- Vmag: magnitud en el visible
+- B-V: temperatura en la superficie
