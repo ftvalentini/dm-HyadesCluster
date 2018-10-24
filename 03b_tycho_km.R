@@ -73,18 +73,19 @@ set.seed(semilla)
 # por default usa euclidean distance
 # criterio silhouette
 gc()
-g_k_sil_tyc = factoextra::fviz_nbclust(tyc_sc,FUNcluster=kmeans,nstart=20,algorithm="Lloyd",
+g_k_sil_tyc = factoextra::fviz_nbclust(k.max=15,tyc_sc,FUNcluster=kmeans,nstart=20,algorithm="Lloyd",
                                    method="silhouette") +
   labs(title=NULL)
 kopt_sil_tyc = ggplot_build(g_k_sil_tyc)$data[[3]]['xintercept'] %>% as.numeric()
 # save
-ggsave(plot=g_k_sil_tyc, filename="output/plots/kopt_scd_km_tycho.png")
+ggsave(plot=g_k_sil_tyc, filename="output/plots/kopt_sil_km_tycho.png",
+       width=5,height=2.5,dpi=100)
 # criterio SCD (a mano porque factoextra no corre)
 set.seed(semilla)
-scd_tyc = tibble(k=1:10) %>% 
+scd_tyc = tibble(k=2:15) %>% 
   mutate(scd = map_dbl(k, function(x) 
     kmeans(tyc_sc, centers=x, nstart=20, algorithm="Lloyd") %$% tot.withinss))
-g_k_sil_tyc = ggplot(scd_tyc, aes(x=k, y=scd)) +
+g_k_scd_tyc = ggplot(scd_tyc, aes(x=k, y=scd)) +
   geom_line(color = "steelblue") +
   geom_point(color = "steelblue") +
   geom_vline(xintercept=kopt_sil_tyc, linetype=2, color="steelblue") +
@@ -93,13 +94,15 @@ g_k_sil_tyc = ggplot(scd_tyc, aes(x=k, y=scd)) +
   theme_minimal() +
   NULL
 # save
-ggsave(plot=g_k_scd_tyc, filename="output/plots/kopt_sil_km_tycho.png")
+ggsave(plot=g_k_scd_tyc, filename="output/plots/kopt_scd_km_tycho.png",
+       width=5,height=2.5,dpi=100)
 
 # kmeans con k optimo --------------------------------------------------------
 set.seed(semilla)
-# kmeans (euclidean, k optimo, 20 semillas para centroides iniciales)
+# kmeans (euclidean, k=a ojo segun candidatos, 20 semillas para centroides iniciales)
 gc()
-km_tyc = kmeans(tyc_sc, centers=kopt_sil_tyc, nstart=20, algorithm="Lloyd")
+km_tyc = kmeans(tyc_sc, centers=15, nstart=20, algorithm="Lloyd", iter.max=100)
+saveRDS(km_tyc, file="data/working/km_tyc.RDS")
 
 # identificacion de candidatas --------------------------------------------
 # distribucion de hd en los clusters
@@ -150,7 +153,7 @@ g_sil_km_tyc = factoextra::fviz_silhouette(sil_km_tyc, print.summary=F) +
 ggsave(plot=g_sil_km_tyc, filename="output/plots/sil_km_tycho.png")
 
 # resumen por cluster
-res_sil_tyc = (summary(sil_tyc) %$% cbind(dimnames(clus.sizes)[[1]],
+res_sil_tyc = (summary(sil_km_tyc) %$% cbind(dimnames(clus.sizes)[[1]],
                                           clus.sizes,
                                           clus.avg.widths)) %>% 
   as_tibble() %>% setNames(c("cluster","size","avg.width"))

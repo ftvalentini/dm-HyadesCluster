@@ -14,13 +14,13 @@ tyc_raw <- readxl::read_excel("data/raw/hyades_source.xlsx", sheet="Tycho",
                                           rep("text",2),
                                           rep("numeric",1))) %>% as_tibble() 
 # ids de candidatas identificadas con clustering en hipparcos
-# hipcand_raw = read.csv("output/candidates_km_tycparcos.csv", colClasses="character") %>%
-# as_tibble()
+hipcand_raw = read.csv("output/candidates_fa_hipparcos.csv", colClasses="character") %>%
+  as_tibble()
 
 # clean data --------------------------------------------------------------
 tyc = tyc_raw %>% 
   # saca candidatas de clustering de hip que tmbn estan en tyc
-  # dplyr::filter(!(HIP %in% hipcand_raw$id)) %>% 
+  dplyr::filter(!(HIP %in% hipcand_raw$id)) %>%
   # identificador de hyades
   mutate(hyades = if_else(HIP %in% hdids_raw$id_hip, TRUE, FALSE)) %>% 
   # saca vbles irrelevantes
@@ -40,7 +40,6 @@ tyc_sc = tyc %>%
 # base con ID y pertenencia a hd
 tyc_id = tyc %>% select(recno, hyades) %>% rename("id"="recno")
 
-### NOTA: no saca candidatas de hip por ahora (linea 23)
 
 # k optimo -------------------------------------------------------
 # set.seed(semilla)
@@ -63,9 +62,9 @@ tyc_id = tyc %>% select(recno, hyades) %>% rename("id"="recno")
 
 # fuzzy clustering  --------------------------------------------------------
 set.seed(semilla)
-# k=2 (?)
+# k=k optimo de kmeans
 # fanny (euclidean dist)
-fa_tyc = cluster::fanny(tyc_sc, k=2, memb.exp=1.35)
+fa_tyc = cluster::fanny(tyc_sc, k=3, memb.exp=1.35)
 
 ### QUE ES EL PARAMETRO memb.exp ???
 ### no hay convergencia con k=2

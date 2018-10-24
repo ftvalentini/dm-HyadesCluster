@@ -77,13 +77,15 @@ tycx = tyc_raw %>%
 g_scat_hip_res = ggplot(hipx) + 
   geom_point(aes(x=RA_J2000, y=DE_J2000, color=tipo),
              size=1.25, position="jitter")
-ggsave(filename="output/plots/scatter_res_hip_1.png", g_scat_hip_res, scale=1.5)
+ggsave(filename="output/plots/scatter_res_hip_1.png", g_scat_hip_res,
+       width=8,height=4,dpi=100)
 
 # tyc
 g_scat_tyc_res = ggplot(tycx) + 
   geom_point(aes(x=RA_J2000_24, y=DE_J2000, color=tipo),
-             size=1.1, position="jitter")
-ggsave(filename="output/plots/scatter_res_tyc_1.png", g_scat_tyc_res, scale=1.5)
+             size=0.75, position="jitter")
+ggsave(filename="output/plots/scatter_res_tyc_1.png", g_scat_tyc_res,
+       width=8,height=4,dpi=320)
 
 
 

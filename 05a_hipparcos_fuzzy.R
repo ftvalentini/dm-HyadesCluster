@@ -50,13 +50,13 @@ tab_fa_hd_hip = table(fa_hip$cluster, hip_id$hyades,
 saveRDS(tab_fa_hd_hip, file="output/tablehyades_fuzzy_hipparcos.RDS")
 
 # las candidatas son del cluster donde estan la mayor parte de las hd
-# clus_hd_fa_hip = tab_clus_hd_hip %>% as_tibble() %>% 
-#   dplyr::filter(Hyades==T) %>% dplyr::filter(n==max(n)) %$% Cluster
-# id_candidates_fa_hip = hip_id %>% bind_cols(cluster=km_hip$cluster) %>% 
-#   dplyr::filter(cluster %in% clus_hd_hip & hyades==F) %$% id
-# df_cand_fa_hip = tibble(id=id_candidates_hip, catalog="hipparcos")
-# # write csv 
-# write.csv(df_cand_fa_hip, "output/candidates_fa_hipparcos.csv", row.names=F)
+clus_hd_fa_hip = tab_fa_hd_hip %>% as_tibble() %>%
+  dplyr::filter(Hyades==T) %>% dplyr::filter(n==max(n)) %$% Cluster
+id_candidates_fa_hip = hip_id %>% bind_cols(cluster=km_hip$cluster) %>%
+  dplyr::filter(cluster %in% clus_hd_hip & hyades==F) %$% id
+df_cand_fa_hip = tibble(id=id_candidates_hip, catalog="hipparcos")
+# write csv
+write.csv(df_cand_fa_hip, "output/candidates_fa_hipparcos.csv", row.names=F)
 
 # PCA plot ---------------------------------------------------------------
 fa_pca_hip = prcomp(hip_sc)

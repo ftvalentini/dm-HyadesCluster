@@ -32,7 +32,8 @@ g_k_sil_hip = factoextra::fviz_nbclust(hip_sc,
   labs(title=NULL)
 kopt_sil_hip = ggplot_build(g_k_sil_hip)$data[[3]]['xintercept'] %>% as.numeric()
 # save
-ggsave(plot=g_k_sil_hip, filename="output/plots/kopt_scd_km_hipparcos.png")
+ggsave(plot=g_k_sil_hip, filename="output/plots/kopt_sil_km_hipparcos.png",
+       width=5,height=2.5,dpi=100)
 # criterio SCD
 set.seed(semilla)
 g_k_scd_hip = factoextra::fviz_nbclust(hip_sc,
@@ -42,14 +43,15 @@ g_k_scd_hip = factoextra::fviz_nbclust(hip_sc,
   labs(title=NULL) +
   geom_vline(xintercept=kopt_sil_hip, linetype=2, color="steelblue")
 # save
-ggsave(plot=g_k_scd_hip, filename="output/plots/kopt_sil_km_hipparcos.png")
+ggsave(plot=g_k_scd_hip, filename="output/plots/kopt_scd_km_hipparcos.png",
+       width=5,height=2.5,dpi=100)
 
 
 # kmeans con k optimo --------------------------------------------------------
 set.seed(semilla)
-# kmeans (euclidean, k optimo, 20 semillas para centroides iniciales)
+# kmeans (euclidean, k=a ojo segun candidatos, 20 semillas para centroides iniciales)
 km_hip = kmeans(hip_sc, centers=kopt_sil_hip
-                      , nstart=20
+                      , nstart=20,iter.max=100
                       )
 # save
 saveRDS(km_hip, file="data/working/km_hipparcos.RDS")

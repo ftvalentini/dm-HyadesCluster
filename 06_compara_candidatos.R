@@ -47,7 +47,7 @@ g_dens = ggplot(gdat, aes(x=value, fill=catalog)) +
   NULL
 # save
 ggsave(filename="output/plots/compared_density_candidates.png",
-       g_dens, scale=1.5)
+       g_dens, width=10,height=5,dpi=100)
 
 
 # scatter -----------------------------------------------------------------
@@ -55,7 +55,8 @@ ggsave(filename="output/plots/compared_density_candidates.png",
 g_scat_cand = ggplot(full_cand %>% select(-c(id_hipparcos, id_tycho))) + 
   geom_point(aes(x=RA_J2000, y=DE_J2000, color=catalog),
              size=1.25, position="jitter")
-ggsave(filename="output/plots/scatter_cand_1.png", g_scat_cand, scale=1.5)
+ggsave(filename="output/plots/scatter_cand_1.png", g_scat_cand,
+       width=10,height=5,dpi=100)
 
 
 # # boxplots

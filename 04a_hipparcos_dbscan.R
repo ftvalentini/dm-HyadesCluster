@@ -27,7 +27,8 @@ g_knndist_hip = ggplot(gdat_knndist_hip) +
   theme_minimal() +
   NULL
 # save
-ggsave("output/plots/eps_db_hip.png", g_knndist_hip)
+ggsave("output/plots/eps_db_hip.png", g_knndist_hip,
+       width=5,height=2.5,dpi=100)
 # ver punto de quiebre con
 # g_knndist_hip %>% plotly::ggplotly()
 
