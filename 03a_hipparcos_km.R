@@ -103,7 +103,7 @@ res_sil_hip = (summary(sil_km_hip) %$% cbind(dimnames(clus.sizes)[[1]],
 # PCA plot ---------------------------------------------------------------
 km_pca_hip = prcomp(hip_sc)
 pca_hd_hip = km_pca_hip$x[hip_id$hyades,1:2]
-g_pca_km_hip = factoextra::fviz_pca_ind(prcomp(hip_sc, scale=T), label="none",
+g_pca_km_hip = factoextra::fviz_pca_ind(prcomp(hip_sc, scale=F), label="none",
                                         habillage=km_hip$cluster,
                                         title="",
                                         mean.point=F,

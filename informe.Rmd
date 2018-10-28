@@ -53,11 +53,11 @@ Este último cluster es el objeto de interés central del presente estudio. Se t
 
 El análisis se llevó a cabo a partir de los datos disponibles en dos catálogos de estrellas, Hipparcos y Tycho, un listado de estrellas pertenecientes a las Hyades y un archivo que permite cruzar las estrellas identificadas como Hyades con estrellas registradas en el catálogo de Hipparcos (ver Sección \@ref(datos)).
 
-Se usó hardware de uso personal con un procesador Intel Core i7 y 8 GB de memoria RAM. El se llevó a cabo en lenguaje R en su versión 3.5.0, con la asistencia de la IDE RStudio y del conjunto de librerías *tidyverse*. Asimismo, para las tareas de clustering y su respectivo diagnóstico se usaron las librerías *cluster*, *factoextra*, *clustertend* y *dbscan*.
+Se usó hardware de uso personal con un procesador Intel Core i7 y 8 GB de memoria RAM. El análisis se llevó a cabo en lenguaje R en su versión 3.5.0, con la asistencia de la IDE RStudio y del conjunto de librerías *tidyverse*. Asimismo, para las tareas de clustering y su respectivo diagnóstico se usaron las librerías *cluster*, *factoextra*, *clustertend* y *dbscan*.
 
 ## Objetivo de data mining
 
-El objetivo principal del trabajo es encontrar dentro de los catálogos Hipparcos y Tycho estrellas que podrían pertenecer a las Hyades. Esta identificación de estrellas candidatas se realizó mediantes técnicas de clustering: las estrellas pertenecientes al mismo agrupamiento que una cantidad significativa de las ya identificadas como Hyades son consideradas candidatas. Se realizaron asimismo las siguientes actividades adicionales relacionadas al objetivo general: un estudio de las características diferenciales de las estrellas candidatas de ambos catálogos, una identificación de estrellas candidatas en Hipparcos a partir de métodos de clustering difuso y por densidad, una exportación de un modelo de K-Medias con la especificación PMML desde R hacia Python **(y un análisis de datos faltantes de paralaje en Tycho???)**.
+El objetivo principal del trabajo es encontrar dentro de los catálogos Hipparcos y Tycho estrellas que podrían pertenecer a las Hyades. Esta identificación de estrellas candidatas se realizó mediantes técnicas de clustering: las estrellas pertenecientes al mismo agrupamiento que una cantidad significativa de las ya identificadas como Hyades son consideradas candidatas. Se realizaron asimismo las siguientes actividades adicionales relacionadas al objetivo general: un estudio de las características diferenciales de las estrellas candidatas de ambos catálogos, una identificación de estrellas candidatas en Hipparcos a partir de métodos de clustering difuso y por densidad, una exportación de un modelo de K-Medias con la especificación PMML desde R hacia Python y un análisis de datos faltantes de paralaje en Tycho.
 
 ## Plan del proyecto
 
@@ -93,7 +93,7 @@ Para esta etapa fue necesario llevar adelante las tareas de preprocesamiento des
 
 ### Hipparcos
 
-En la Figura \@ref(fig:cor-hip) resulta interesante ver que las variables no presentan correlaciones muy fuertes, destacándose únicamente la relación negativa entre las dos métricas de movimiento propio. A su vez el paralaje correlaciona positivamente con *pmRa* y negativamente con *pmDE*.
+En la Figura \@ref(fig:cor-hip) resulta interesante ver que las variables no presentan correlaciones muy fuertes, destacándose únicamente la relación negativa entre las dos métricas de movimiento propio. A su vez el paralaje correlaciona positivamente con *pmRA* y negativamente con *pmDE*.
 
 ```{r cor-hip, out.width='50%', fig.cap="Correlograma (Hipparcos)"}
 knitr::include_graphics(c("output/plots/cor_hip.png"))
@@ -101,7 +101,7 @@ knitr::include_graphics(c("output/plots/cor_hip.png"))
 
 En los gráficos de densidad de la Figura \@ref(fig:dens-hip) se puede observar que la mayoría de las medianas de las variables son distintas aunque se encuentran próximas entre un grupo y otro. La dispersión es menor por lo general en las Hyades. Esto último resulta razonable ya que se supone que son similares entre ellas.
 
-Algunos casos destacables son la variable de temperatura *V-B*, que presenta una mediana similar entre grupos; sin embargo las Hyades tienen sus valores concentrados mucho menos dispersas respecto al resto de las estrellas. Por otra parte, la variable de magnitud *Vmag* presenta una dispersión dentro de todo comparable entre ambos grupos, pero con una mediana claramente distinta entre ellos, siendo menor la correspondiente a las Hyades.
+Algunos casos destacables son la variable de temperatura *B-V*, que presenta una mediana similar entre grupos; sin embargo las Hyades tienen sus valores concentrados mucho menos dispersas respecto al resto de las estrellas. Por otra parte, la variable de magnitud *Vmag* presenta una dispersión dentro de todo comparable entre ambos grupos, pero con una mediana claramente distinta entre ellos, siendo menor la correspondiente a las Hyades.
 
 ```{r dens-hip, out.width='80%',fig.cap="Densidades de las variables (Hipparcos)"}
 knitr::include_graphics("output/plots/dens_hip2.png")
@@ -123,9 +123,30 @@ knitr::include_graphics("output/plots/dens_tyc2.png")
 
 ## Verificación de la calidad de los datos {#datos-calidad}
 
-El análisis de la calidad de los datos consistió en la detección y análisis de datos faltantes. En Hipparcos únicamente la variable *B-V* cuenta con registros faltantes, en particular en `r sum(is.na(hip_raw[['B-V']]))` de los `r nrow(hip_raw)` casos. En Tycho el atributo *Plx* presenta `r sum(is.na(tyc_raw[['Plx']]))` instancias faltantes.
+El análisis de la calidad de los datos consistió en la detección y análisis de datos faltantes. En Hipparcos únicamente la variable *B-V* cuenta con registros faltantes, en particular en `r sum(is.na(hip_raw[['B-V']]))` de los `r nrow(hip_raw)` casos. En Tycho el atributo *Plx* presenta `r sum(is.na(tyc_raw[['Plx']]))` instancias faltantes, lo cual representa el `r (sum(is.na(tyc_raw[['Plx']])) / nrow(tyc_raw) * 100) %>% round(2)`% de los registros.
 
-**(aca meter lo de faltantes en tycho si lo hacemos)**
+Se estudió si existe algún patrón en los datos que explique la presencia o ausencia de datos faltantes en el atributo *Plx* (paralaje) de Tycho.
+
+En primer lugar se realizó un análisis gráfico comparando el comportamiento de los registros con faltantes en el paralaje y los que no. El análisis de las densidades comparadas (Figura \@ref(fig:na-tyc)) reveló que las estrellas con faltantes en el paralaje presentan valores más elevados en las variables *BT*, *V* y *VT*, a la vez que se observa una menor dispersión en los valores de dichas variables para las estrellas que tuvieron faltantes.
+
+```{r na-tyc, out.width='70%',fig.cap="Densidades de las variables según presencia de datos de paralaje (Tycho)"}
+knitr::include_graphics("output/plots/dens_na.png")
+```
+
+Luego se realizó un test de diferencia de medias para ver si la diferencia de medias entre las estrellas con faltantes en el paralaje y las que no lo tienen resulta estadísticamente significativa. De esta análisis resultó que las medias de todas las variales son estadísticamente significativas exceptuando la variable *DE_J2000*.
+
+A continuación se realizó un test para evaluar si los faltantes son MCAR (Missing Completely At Random) untilizando el algoritmo *LittleMCAR* del paquete *BaylorEdPsych*. En estos casos, el mecanismo de faltantes no depende ni de la variable de interés ni de otra variable que es observada en el dataset. El resultado del test rechazó la hipótesis nula de que los datos faltantes son MCAR. Por lo tanto, deberían ser MAR (Missing at Random) o Nonignorable missing data.
+
+Se realizó una prueba empírica para ver si los datos existentes logran predecir la presencia o no de faltantes. Se generó un modelo predictivo sencillo utilizando la implementación de Random Forest del paquete *randomForest*. Se entrenó al modelo con el 80% del dataset y se lo testeó con el 20% restante. Se obtuvo un Accuracy de 0.92 y un AUC del 0.78. Si bien se parte de una no-information rate de 0.86, los datos parecerían tener significatividad a la hora de determinar la presencia o no de faltantes en los datos de paralaje.
+
+En cuanto a la imputación de datos, por tratarse de una variable con un muy elevado porcentaje de faltantes, se consideró que realizar una no sería adecuado. Sin embargo, se optó por probar realizar una imputación mediante una regresión lineal. La misma se construyó usando las variables *RA_J2000*, *DE_J200* y *BT* (realizando previamente un análisis de significatividad y correlación entre las variables). En la Figura \@ref(fig:na-lineal) se puede observar la diferencia entre los valores predichos y los valores originales. La misma resulta bastante notoria por lo que se descarta la imputación usando regresión como una opción. Este resultado era esperable debido a la gran cantidad de faltantes que presenta la variable.
+
+```{r na-lineal, out.width='50%',fig.cap="Imputación de faltantes de Plx (Tycho) con regresión lineal: valores ajustados vs. observados"}
+knitr::include_graphics("output/plots/modelo_lineal.png")
+
+```
+
+Se concluye entonces que los datos podrían explicar la ausencia de datos faltantes en el paralaje, pero debido a la gran cantidad de NAs resulta inviable realizar algún tipo de imputación al valor del paralaje.
 
 # Preparación de los datos
 
@@ -157,7 +178,7 @@ Antes de llevar adelante los agrupamientos, se computó el índice de Hopkins de
 
 ## Selección de las técnicas de modelado
 
-Las siguientes técnicas de clustering fueron implementadas para identificar candidatos: K-Medias (sobre ambos catálogos), clustering difuso (sobre Hipparcos) y DBSCAN (solo sobre Hipparcos--ver Sección \@ref(eval-dbscan)). En el caso de Tycho se removieron del dataset las estrellas ya identificadas como candidatas en Hipparcos antes de implementar los algoritmos. En todas las ejecuciones se usó como medida de disimilitud la distancia euclidiana.
+Las siguientes técnicas de clustering fueron implementadas para identificar candidatos: K-Medias (sobre ambos catálogos), clustering difuso (sobre Hipparcos) y DBSCAN (solo sobre Hipparcos--ver Sección \@ref(eval-dbscan)). En el caso de Tycho se removieron del dataset las estrellas ya identificadas como candidatas en Hipparcos antes de implementar los algoritmos. En todas las ejecuciones se usó como medida de disimilitud la distancia euclidia.
 
 ## Construcción de los modelos
 
@@ -181,7 +202,7 @@ knitr::include_graphics(c("output/plots/kopt_sil_km_tycho.png",
                           "output/plots/kopt_scd_km_tycho.png"))
 ```
 
-Sin embargo, un agrupamiento con K=3 da lugar a la identificación de un número elevado de candidatas, debido a la gran cantidad de observaciones en Tycho. Por tal motivo, se probaron otros valores de K, y se eligió K=`r nrow(km_tyc$centers)`, que da lugar a una cantidad razonable de estrellas candidatas (ver Sección \@ref(eval-km)). 
+Sin embargo, un agrupamiento con K=3 da lugar a la identificación de un número elevado de candidatas, debido a la gran cantidad de observaciones en Tycho. Por tal motivo, se probaron otros valores de K, y se eligió K=`r nrow(km_tyc$centers)`, que da lugar a una cantidad razonable de estrellas candidatas (ver Sección \@ref(eval-km)).
 
 ### Clustering difuso
 
@@ -210,34 +231,34 @@ En el Cuadro \@ref(tab:km-hd-hip) se observan la distribución de los clusters g
 ```{r km-hd-hip}
 hip_table_km_hd = readRDS("output/tablehyades_km_hipparcos.RDS")
 hip_table_km_hd %>%
-  cbind(Cluster=rownames(.),.) %>% 
-  set_rownames(NULL) %>% 
+  cbind(Cluster=rownames(.),.) %>%
+  set_rownames(NULL) %>%
   kable(booktabs=T, caption="Distribución de estrellas Hyades en clusters de K-Medias (Hipparcos)") %>%
   add_header_above(c(" "=1,"Hyades"=2)) %>%
   kable_styling(latex_options="HOLD_position")
 
 ```
 
-El modelo también fue evaluado mediante el cálculo de Silhouette y su gráfico asociado, que se observa en la Figura \@ref(fig:km-sil-hip). Por último, en la Figura \@ref(fig:km-sil-hip) se presenta un diagrama de dispersión de las estrellas sobre las dos primeras componentes principales.
+El modelo también fue evaluado mediante el cálculo de Silhouette y su gráfico asociado, que se observa en la Figura \@ref(fig:km-sil-hip). Por último, en la Figura \@ref(fig:km-pca-hip) se presenta un diagrama de dispersión de las estrellas sobre las dos primeras componentes principales.
 
 ```{r km-sil-hip,   out.width='70%', fig.cap="Gráfico de Silhouette K-Means K=4 (Hipparcos)"}
 knitr::include_graphics("output/plots/sil_km_hipparcos.png")
 ```
 
-```{r km-pca-hip,   fig.cap="Dos dimensiones de PCA: K-Means K=4 (Hipparcos)"}
+```{r km-pca-hip,   fig.cap="Dos dimensiones de PCA: K-Means K=4 (Hipparcos - datos transformados con minmax)"}
 knitr::include_graphics("output/plots/pca_km_hipparcos.png")
 ```
 
-**HAY QUE DEFINIR SI GRAFICAR ESCALA ORIGINAL O MINMAX**
-**resultados describir**
+Vemos que los datos quedaron separados en cuatro cuadrantes bien definidos al graficar las dos primeras componentes principales. Estas explican de manera conjunta el 80% de la variabilidad. Queda reflejado que el cluster 2 (superior izquierdo) contiene a la mayoría de las observaciones que forman parte de Hyades. La mayoría de estas se encuentran cerca y a lo largo de la frontera inferior a excepción de una que se encuentra en el extremo superior dando cuenta que la primera dimensión forma un primer corte importante entre Hyades y no Hyades, y que dentro de las primeras igualmente hay variabilidad. Por otro lado la proyección en la segunda componente está mucho más concentrada para las Hyades aunque con gran mayoría en valores positivos.
+Las estrellas Hyades que quedaron en algún otro cluster se encuentran en buena medida cerca de los límites del cluster 2 a excepción de 5 observaciones bastante alejadas en base a estas componentes graficadas.
 
 En lo que respecta a Tycho, el Cuadro \@ref(tab:km-hd-tyc) indica la distribución de los agrupamientos en función de la pertenencia al cluster Hyades. Fue posible identificar `r as_tibble(tyc_table_km_hd) %>% dplyr::filter(Hyades==F) %>% dplyr::filter(n==min(n)) %$% n` estrellas candidatas en Tycho, que se encontraron agrupadas junto a `r as_tibble(tyc_table_km_hd) %>% dplyr::filter(Hyades==T) %>% dplyr::filter(n==max(n)) %$% n` de las Hyades ya conocidas. Sumando las candidatas de ambos catálogos, se cuenta con `r (as_tibble(tyc_table_km_hd) %>% dplyr::filter(Hyades==F) %>% dplyr::filter(n==min(n)) %$% n) + (as_tibble(hip_table_km_hd) %>% dplyr::filter(Hyades==F) %>% dplyr::filter(n==min(n)) %$% n)` estrellas candidatas. Esta lista se presenta en el Anexo.
 
 ```{r km-hd-tyc}
 tyc_table_km_hd = readRDS("output/tablehyades_km_tycho.RDS")
 tyc_table_km_hd %>%
-  cbind(Cluster=rownames(.),.) %>% 
-  set_rownames(NULL) %>% 
+  cbind(Cluster=rownames(.),.) %>%
+  set_rownames(NULL) %>%
   kable(booktabs=T, caption="Distribución de estrellas Hyades en clusters de K-Medias (Tycho)") %>%
   add_header_above(c(" "=1,"Hyades"=2)) %>%
   kable_styling(latex_options="HOLD_position")
@@ -269,8 +290,8 @@ Luego de la clusterización, se definió que aquellas estrellas con una probabil
 ```{r fa-hd-hip}
 hip_table_fa_hd = readRDS("output/tablehyades_fuzzy_hipparcos.RDS")
 hip_table_fa_hd %>%
-  cbind(Cluster=rownames(.),.) %>% 
-  set_rownames(NULL) %>% 
+  cbind(Cluster=rownames(.),.) %>%
+  set_rownames(NULL) %>%
   kable(booktabs=T, caption="Distribución de estrellas Hyades en clusters difusos (Hipparcos)") %>%
   add_header_above(c(" "=1,"Hyades"=2)) %>%
   kable_styling(latex_options="HOLD_position")
@@ -282,9 +303,9 @@ Los clusters obtenidos para Hipparcos según las dos primeras componentes princi
 knitr::include_graphics("output/plots/pca_fuzzy_hipparcos.png")
 ```
 
-**DESCRIBIR RESULTADOS**
+Como se puede observar, los clusters definidos quedaron muy similares a los vistos en K-Means. Sin embargo la región central corresponde al cluster *0* donde el grado de certeza de la pertenencia a un cluster es reducido. Las conclusiones son básicamente las mismas que para la Figura \@ref(fig:km-pca-hip) aunque notando que algunas de las observaciones Hyades que antes caían en el cluster 2 ahora no pueden ser clasificadas concluyentemente (cluster 0). De la misma manera podemos ver que observaciones que antes pertenecían a otros clusters también caen en el cluster 0, notando que tampoco es concluyente que pertenezcan todas a otro cluster realmente.
 
-Se intentó ejecutar un clustering difuso sobre Tycho descontando las candidatas del cluster con mayor cantidad de Hyades según el Cuadro \@ref(tab:fa-hd-hip), pero no fue posible para $K>2$ debido a las limitaciones del hardware. 
+Se intentó ejecutar un clustering difuso sobre Tycho descontando las candidatas del cluster con mayor cantidad de Hyades según el Cuadro \@ref(tab:fa-hd-hip), pero no fue posible para $K>2$ debido a las limitaciones del hardware.
 
 ### DBSCAN {#eval-dbscan}
 
@@ -294,7 +315,7 @@ El Cuadro \@ref(tab:db-hd-hip) indica la distribución de los clusters de DBSCAN
 hip_table_db_hd = readRDS("output/tablehyades_dbscan_hipparcos.RDS")
 hip_table_db_hd %>%
   cbind(Cluster=rownames(.),.) %>%
-  set_rownames(NULL) %>% 
+  set_rownames(NULL) %>%
   kable(booktabs=T, caption="Distribución de estrellas Hyades en clusters de DBSCAN (Hipparcos)") %>%
   add_header_above(c(" "=1,"Hyades"=2)) %>%
   kable_styling(latex_options="HOLD_position")
@@ -313,7 +334,9 @@ knitr::include_graphics(c("output/plots/scatter_res_hip_1.png",
                           "output/plots/scatter_res_tyc_1.png"))
 ```
 
-**DESCRIBIR**
+Se observa que en Hipparcos las candidatas quedan muy bien delimitadas desde el punto de vista de las variables de posición. La selección incluye el núcleo duro de Hyades gráficamente y se extiende abarcando a dos de las alejadas. Al menos para estas dos variables, la cantidad de candidatas identificada parece excesiva -- es decir que la región de candidatas incluye zonas donde no hay Hyades confirmadas cerca. Por otra parte, la región de corte queda próxima a ciertas Hyades que finalmente fueron agrupadas en otro cluster.
+
+En Tycho, por su parte, no se distingue una región totalmente aislada en términos de las variables de posición; más bien, las candidatas se encuentran entremezcladas con otras estrellas no candidatas. El algoritmo pareciera captar ciertas candidatas cercanas a la región de corte de Hipparcos, pero que formaban parte de otros clusters. A su vez, algunas candidatas se encuentran en la zona inferior derecha mostrando una clara diferencia en las características de posición del cluster obtenido para el catálogo Tycho respecto al de Hipparcos.
 
 En la Figura \@ref(fig:res-comp-dens) se comparan las candidatas que surgen de cada catálogo de forma univariada, para los atributos disponibles en ambos datasets.
 
@@ -321,29 +344,27 @@ En la Figura \@ref(fig:res-comp-dens) se comparan las candidatas que surgen de c
 knitr::include_graphics("output/plots/compared_density_candidates.png")
 ```
 
-**DESCRIBIR**. La posición de las candidatas en términos de RA y DE se observa en la Figura \@ref(fig:res-scatter-cand).
+Se registan algunas diferencias claras: en primer lugar, las candidatas de los catálogos difieren significativamente en términos de posición de las estrellas, estando concentradas en distintos valores tanto *DE* como *RA* (esto mismo se observa en la Figura \@ref(fig:res-scatter-pos)). En segundo lugar, se destaca la diferencia en la densidad para *B-V*, teniendo las candidatas de Tycho una concentración mayor en valores más bajos que Hipparcos, pero presentando una cola más pesada a derecha. Por último, la magnitud *Vmag* presenta una distribución de forma similar pero aparentemente centrada en valores levemente mayores en Hipparcos. El resto de las variables compartidas no presenta mayores diferencias.
 
-```{r res-scatter-cand, out.width='90%',fig.cap="Comparación de candidatas"}
+La posición de las candidatas en términos de RA y DE se observa en la Figura \@ref(fig:res-scatter-cand).
+
+```{r res-scatter-cand, out.width='90%',fig.cap="Posición de candidatas"}
 knitr::include_graphics("output/plots/scatter_cand_1.png")
 ```
 
-**DESCRIBIR**.
+Este gráfico refleja más claramente lo observado en las Figuras \@ref(fig:res-scatter-pos) y a \@ref(fig:res-comp-dens) al quitar los puntos de las estrellas que no son candidatas en ningún caso. Los catálogos presentan distintas agregaciones en términos de posición, Hipparcos captando todo el cuadrante superior izquierdo mienrtas que en Tycho (descartadas las candidatas de Hipparcos) se incluyen como candidatas muchas de la región central y otros cuadrantes.
 
 ## Proceso de revisión
 
-**aca va algo?**
+No corresponde.
 
 ## Futuras etapas
 
-**poner cosas que se pueden hacer a futuro**
+En Hipparcos la posición de las estrellas determinó un área muy delimitada mientras que en Tycho esto no sucedió, intercalando candidatas en áreas muy saturadas con no candidatas. Un elemento que quizás haya tenido impacto es que a la hora de realizar clusters para Tycho se descartaron todas las candidatas que surgieron de Hipparcos, por ende sacándole el peso que tenía esa región. Podrían a futuro realizarse los clusters en orden inverso para comparar resultados en términos de candidatas y con énfasis en este fenómeno. Sería necesario además observar la configuración de los clusters generados en términos de otras variables, además de las de posición. Por último, se podrían implementar técnicas para determinar la relevancia de cada variable en los agrupamientos encontrados.
 
 # Implementación
 
 No corresponde.
-
-# Bibliografía
-
-**poner algo?**
 
 # Anexo
 
@@ -361,5 +382,5 @@ cand_full = read.csv("output/candidates_full_km.csv") %>% as_tibble()
 # nr = nrow(cand_full)
 # r = nr/3
 # cand_list = cand_full %>% split(rep(1:ceiling(nr/r), each=2, length.out=nr))
-cand_full %>% kable("latex",booktabs=T, longtable=T) 
+cand_full %>% kable("latex",booktabs=T, longtable=T)
 ```

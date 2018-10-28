@@ -4,7 +4,7 @@
  <Header copyright="Copyright (c) 2018 Franco" description="KMeans cluster model">
   <Extension name="user" value="Franco" extender="Rattle/PMML"/>
   <Application name="Rattle/PMML" version="1.4"/>
-  <Timestamp>2018-10-20 15:12:16</Timestamp>
+  <Timestamp>2018-10-27 20:10:10</Timestamp>
  </Header>
  <DataDictionary numberOfFields="7">
   <DataField name="RA_J2000" optype="continuous" dataType="double"/>
